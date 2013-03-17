@@ -145,6 +145,20 @@ if __name__ == "__main__":
     s.reset()
     time.sleep(.003) # startup time
     s.prom()
-    d = [s.read() for i in range(25)]
-    print "%.02f" % (sum([x[0] for x in d]) / len(d)), "C"
-    print "%.02f" % (sum([x[1] for x in d]) / len(d)), "mbar"
+    d = []
+    tmax = pmax = 0.
+    tmin = pmin = 1E6
+    def f(x):
+        return "%.02f" % x
+    while True:
+        d.append(s.read())
+        if len(d) > 5:
+            d[:-5] = []
+        t = sum([x[0] for x in d]) / len(d)
+        p = sum([x[1] for x in d]) / len(d)
+        pmax = max(p, pmax)
+        pmin = min(p, pmin)
+        tmax = max(t, tmax)
+        tmin = min(t, tmin)
+        print " ".join([f(x) for x in [t, tmin, tmax, tmax - tmin, p, pmin, pmax, pmax - pmin]])
+        time.sleep(.2)
