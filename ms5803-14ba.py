@@ -145,5 +145,6 @@ if __name__ == "__main__":
     s.reset()
     time.sleep(.003) # startup time
     s.prom()
-    for x in range(25):
-        print s.read()
+    d = [s.read() for i in range(25)]
+    print "%.02f" % (sum([x[0] for x in d]) / len(d)), "C"
+    print "%.02f" % (sum([x[1] for x in d]) / len(d)), "mbar"
