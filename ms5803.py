@@ -1,11 +1,8 @@
 """Implemnts I2C readout of MS5803-14BA sensors.
 http://www.meas-spec.com/product/t_product.aspx?id=8684
-
-Note: I tried connecting the sensor to my raspi via SPI, but wasn't able to get
-(meaningful) reponses.
 """
 import time
-import smbus
+import spi
 
 # crc4 and test taken from AN520
 def crc4(words):
@@ -37,19 +34,18 @@ def test_crc4():
     verify_crc4(words)
 
 class MS5803_14BA(object):
-    def __init__(self, bus, addr):
-        self.bus = bus
-        self.addr = addr
+    def __init__(self):
         self.C = []
 
     def reset(self):
-        self.bus.write_byte(self.addr, 0x1e)
+        spi.transfer((0x1e,))
 
     def prom(self):
         words = []
         for i in range(8):
-            h, l = self.bus.read_i2c_block_data(self.addr, 0xa0 | (2*i), 2)
+            h, l = spi.transfer((0xa0 | (2*i), 0, 0))[1:]
             words.append(h << 8 | l)
+        assert any(words)
         verify_crc4(words)
         self.C = words
         assert len(self.C) == 8
@@ -57,9 +53,9 @@ class MS5803_14BA(object):
     def adc(self, cmd, osr):
         # osr: 0 = 256, 1 = 512, 2 = 1024, 3 = 2048, 4 = 4096
         assert 0 <= osr <= 4
-        self.bus.write_byte(self.addr, cmd | (2 * osr))
+        spi.transfer((cmd | (2 * osr),))
         time.sleep(.01) # conversion time for osr=4096 is 8.22ms
-        h, m, l = self.bus.read_i2c_block_data(self.addr, 0, 3)
+        h, m, l = spi.transfer((0, 0, 0, 0))[1:]
         return (h << 16) | (m << 8) | l
 
     def pressure(self, osr = 4):
@@ -141,7 +137,16 @@ if __name__ == "__main__":
     test_crc4()
     MS5803_14BA_Test().test()
 
-    s = MS5803_14BA(smbus.SMBus(0), 0x77)
+    # In living room conditions SPI works up to SCLK = 31249999Hz. But the data
+    # sheet defines SCLKmax = 20MHz. So lets stay with that, 'cause it seems to
+    # be a pretty safe choice.
+
+    spi_mode = 0
+    spi_freq = 20000000
+    spi_delay = 0
+    spi.initialize(spi_mode, spi_freq, spi_delay)
+
+    s = MS5803_14BA()
     s.reset()
     time.sleep(.003) # startup time
     s.prom()
