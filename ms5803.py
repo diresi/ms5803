@@ -141,10 +141,7 @@ if __name__ == "__main__":
     # sheet defines SCLKmax = 20MHz. So lets stay with that, 'cause it seems to
     # be a pretty safe choice.
 
-    spi_mode = 0
-    spi_freq = 20000000
-    spi_delay = 0
-    spi.initialize(spi_mode, spi_freq, spi_delay)
+    spi.openSPI(mode = 0, speed = 20000000, delay = 0)
 
     s = MS5803_14BA()
     s.reset()
