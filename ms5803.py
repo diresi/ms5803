@@ -1,4 +1,4 @@
-"""Implemnts I2C readout of MS5803-14BA sensors.
+"""Implemnts SPI readout of MS5803-14BA sensors.
 http://www.meas-spec.com/product/t_product.aspx?id=8684
 """
 import time
