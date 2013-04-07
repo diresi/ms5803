@@ -161,7 +161,7 @@ class Nokia3310(object):
         self.text(time.strftime("%H:%M:%S"))
 
 def setup():
-    spi.openSPI(mode = 0, speed = 1000000, delay = 0)
+    spi.openSPI(mode = 0, speed = 20000000, delay = 0)
     lcd = Nokia3310()
     lcd.setup()
     return lcd
